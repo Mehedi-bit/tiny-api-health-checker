@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="https://ik.imagekit.io/mehedi004/What%20is%20API_0.png?updatedAt=1745752746498" type="image/x-icon">
+  <title>API Health Checker</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: #f9fafb;
+      color: #374151;
+      line-height: 1.6;
+    }
+    header {
+      background-color: #ffffff;
+      padding: 1rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      text-align: center;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 2rem;
+      color: #05845a;
+    }
+    header .info {
+      margin-top: 0.5rem;
+      font-size: 0.95rem;
+      color: #6b7280;
+    }
+    main {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 2rem;
+    }
+    .card {
+      background-color: #ffffff;
+      border-radius: 0.75rem;
+      box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+      padding: 2rem;
+      max-width: 900px;
+      width: 100%;
+    }
+    p {
+      margin-top: 0;
+      margin-bottom: 0.75rem;
+      color: #4b5563;
+    }
+    textarea {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid #d1d5db;
+      border-radius: 0.5rem;
+      resize: vertical;
+      font-size: 1rem;
+      font-family: inherit;
+      transition: border-color 0.3s;
+      margin-bottom: 1rem;
+    }
+    textarea:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 1px #3b82f6;
+    }
+    button {
+      display: block;
+      width: 100%;
+      background-color: #10B981;
+      color: #ffffff;
+      border: none;
+      padding: 0.75rem;
+      font-size: 1.125rem;
+      font-weight: 600;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      transition: background-color 0.3s, transform 0.1s;
+      margin-top: 0.5rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    button:hover {
+      background-color: #059669;
+      transform: translateY(-2px);
+    }
+    button:active {
+      transform: translateY(1px);
+    }
+    button:disabled {
+      background-color: #6ee7b7;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1.5rem;
+    }
+    th, td {
+      padding: 1rem;
+      text-align: left;
+    }
+    thead {
+      background-color: #f3f4f6;
+    }
+    tbody tr {
+      background-color: #ffffff;
+      transition: background-color 0.3s;
+    }
+    tbody tr:nth-child(even) {
+      background-color: #f9fafb;
+    }
+    tbody tr:hover {
+      background-color: #e5e7eb;
+    }
+    th {
+      font-weight: 600;
+      font-size: 1rem;
+      color: #374151;
+      border-bottom: 2px solid #e5e7eb;
+    }
+    td {
+      font-size: 0.95rem;
+      border-bottom: 1px solid #e5e7eb;
+      color: #4b5563;
+    }
+    .status-ok {
+      color: #10B981;
+      font-weight: bold;
+    }
+    .status-down {
+      color: #ef4444;
+      font-weight: bold;
+    }
+    .response-time {
+      color: #6b7280;
+      font-size: 0.875rem;
+    }
+    .status-circle {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+    .status-success {
+      background-color: #10B981;
+    }
+    .status-client-error {
+      background-color: #F59E0B;
+    }
+    .status-server-error {
+      background-color: #EF4444;
+    }
+    @media (max-width: 640px) {
+      header h1 {
+        font-size: 1.5rem;
+      }
+      .card {
+        padding: 1.5rem;
+      }
+      textarea, button {
+        font-size: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>API Health Checker</h1>
+    <div class="info">
+      <span id="lastRefreshed">Last Refreshed: Never</span> | 
+      <span id="countdown">Next Refresh In: 300s</span>
+    </div>
+  </header>
+
+  <main>
+    <div class="card">
+      <p>Enter one or more API URLs (one per line):</p>
+      <textarea id="apiList" rows="5" placeholder="https://api.example.com/health&#10;https://anotherapi.com/status"></textarea>
+      <button id="checkBtn">Check APIs</button>
+      <table id="resultsTable">
+        <thead>
+          <tr>
+            <th>API URL</th>
+            <th>Status Code</th>
+            <th>Status</th>
+            <th>Response Time</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </main>
+
+<script>
+  const checkBtn = document.getElementById('checkBtn');
+  const lastRefreshed = document.getElementById('lastRefreshed');
+  const countdownSpan = document.getElementById('countdown');
+  const tbody = document.querySelector('#resultsTable tbody');
+
+  let countdownSeconds = 300; // 5 minutes = 300 seconds
+
+  async function checkApis() {
+    var btn = checkBtn;
+    var originalText = btn.innerText;
+    btn.disabled = true;
+    btn.innerText = 'Checking APIs...';
+
+    var apiList = document.getElementById('apiList').value.split(/\r?\n/).filter(Boolean);
+    tbody.innerHTML = '';
+
+    try {
+      const response = await fetch('http://localhost:5000/check-apis', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ urls: apiList })
+      });
+
+      const results = await response.json();
+
+      results.forEach(result => {
+        var row = document.createElement('tr');
+
+        var urlCell = document.createElement('td');
+        urlCell.textContent = result.url;
+
+        var statusCodeCell = document.createElement('td');
+        var statusCircle = document.createElement('span');
+        statusCircle.classList.add('status-circle');
+
+        statusCodeCell.textContent = result.statusCode;
+        statusCodeCell.prepend(statusCircle);
+
+        if (result.statusCode >= 200 && result.statusCode < 300) {
+          statusCircle.classList.add('status-success');
+        } else if (result.statusCode >= 400 && result.statusCode < 500) {
+          statusCircle.classList.add('status-client-error');
+        } else if (result.statusCode >= 500 || result.statusCode === 'Network Error') {
+          statusCircle.classList.add('status-server-error');
+        }
+
+        var statusCell = document.createElement('td');
+        statusCell.textContent = result.status === 'Up' ? 'OK' : 'DOWN';
+        statusCell.classList.add(result.status === 'Up' ? 'status-ok' : 'status-down');
+
+        var responseTimeCell = document.createElement('td');
+        responseTimeCell.textContent = result.responseTime + ' ms';
+
+        row.appendChild(urlCell);
+        row.appendChild(statusCodeCell);
+        row.appendChild(statusCell);
+        row.appendChild(responseTimeCell);
+        tbody.appendChild(row);
+      });
+
+      updateLastRefreshed();
+      resetCountdown();
+
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Something went wrong while checking the APIs.');
+    }
+
+    btn.disabled = false;
+    btn.innerText = originalText;
+  }
+
+  function updateLastRefreshed() {
+    const now = new Date();
+    lastRefreshed.textContent = 'Last Refreshed: ' + now.toLocaleTimeString();
+  }
+
+  function resetCountdown() {
+    countdownSeconds = 300;
+  }
+
+  // Manual button click
+  checkBtn.addEventListener('click', checkApis);
+
+  // Auto-refresh every 5 minutes
+  setInterval(() => {
+    countdownSeconds--;
+    countdownSpan.textContent = `Next Refresh In: ${countdownSeconds}s`;
+    if (countdownSeconds <= 0) {
+      checkApis();
+    }
+  }, 1000);
+</script>
+
+</body>
+</html>
