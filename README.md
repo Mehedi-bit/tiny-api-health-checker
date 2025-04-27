@@ -42,7 +42,7 @@ A simple and beautiful **API Health Checker** web app that allows you to monitor
 
 ### 1. Clone the repository
 ```bash
-git clone https://github.com/yourusername/api-health-checker.git
+git clone https://github.com/Mehedi-bit/api-health-checker.git
 ```
 ```bash
 cd api-health-checker
@@ -52,9 +52,9 @@ cd api-health-checker
 
 ### 2. Set Up Backend
 
-**Step 1:** Go to the `backend` directory:
+**Step 1:** Go to the `server` directory:
 ```bash
-cd backend
+cd server
 ```
 
 **Step 2:** Install dependencies:
@@ -72,13 +72,16 @@ The backend server will run at `http://localhost:5000`.
 
 ### 3. Set Up Frontend
 
-**Step 1:** Go to the `frontend` directory:
+**Step 1:** Go to the `client` directory:
 ```bash
-cd ../frontend
+cd ../client
 ```
 
 **Step 2:** Open `index.html` in your browser.  
 (You can simply double-click the `index.html` file, or use a live server extension if you're using VS Code.)
+
+**Step 3:** Boom! Site is ready. Give api links in the frontend and hit "Check APIs" button.
+
 
 ---
 
